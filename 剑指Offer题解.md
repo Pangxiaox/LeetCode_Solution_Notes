@@ -1832,65 +1832,35 @@ class Solution {
 ### 和为s的连续正数序列
 
 ```java
-class Solution {
+class Solution{
+public int[][] findContinuousSequence(int target) {
+    int i = 1; // 滑动窗口的左边界
+    int j = 1; // 滑动窗口的右边界
+    int sum = 0; // 滑动窗口中数字的和
+    List<int[]> res = new ArrayList<>();
 
-    private int capacity = 10;
-
-    private int[][] ans = new int[capacity][];
-
-    public int[][] findContinuousSequence(int target) {
-
-        int small = 1, big = 2;
-        int sum;
-
-        int t = 0, p = 0;
-        
-        // 其实取到 target / 2 就可以了
-        while (small < big && small <= target / 2) {
-            sum = ((small + big) * (big - small + 1)) / 2;
-            if (sum < target) {
-                big++;
+    while (i <= target / 2) {
+        if (sum < target) {
+            // 右边界向右移动
+            sum += j;
+            j++;
+        } else if (sum > target) {
+            // 左边界向右移动
+            sum -= i;
+            i++;
+        } else {
+            // 记录结果
+            int[] arr = new int[j-i];
+            for (int k = i; k < j; k++) {
+                arr[k-i] = k;
             }
-            else if (sum > target) {
-                small++;
-            }
-            else {
-                
-                int[] subAns = new int[big - small + 1];
-
-                for (int i = small; i <= big; i++) {
-                    subAns[t++] = i;
-                }
-
-                t = 0;
-                ans[p++] = subAns;
-
-                if (p == capacity) {
-                    enlargeCapacity();
-                }
-
-                small++;
-            }
+            res.add(arr);
+            // 左边界向右移动
+            sum -= i;
+            i++;
         }
-
-        changeCapacity(p);
-
-        return ans;
     }
-
-    /**
-     * 扩容
-     */
-    private void enlargeCapacity() {
-        capacity += 10;
-        ans = Arrays.copyOf(ans, capacity);
-    }
-
-    /**
-     * 删除数组多余空间
-     */
-    private void changeCapacity(int retCapacity) {
-        ans = Arrays.copyOf(ans, retCapacity);
+        return res.toArray(new int[res.size()][]);
     }
 }
 ```
@@ -1902,31 +1872,15 @@ class Solution {
 ```java
 class Solution {
     public String reverseWords(String s) {
-        String str = s.trim();
-        if (str.equals("")){
-            return "";
-        }
-        String[] strList = reverse(str).split("\\s+");
+        String[] str = s.trim().split("\\s+");
         StringBuilder sb = new StringBuilder();
-        for (int i=0; i<strList.length; i++){
-            sb.append(reverse(strList[i]));
-            if(i!=strList.length-1){
-                sb.append(" ");
-            }
+        for(int i=str.length-1;i>0;i--)
+        {
+            sb.append(str[i]);
+            sb.append(" ");
         }
-        return ""+sb;
-    }
-    private String reverse(String s){
-        StringBuilder sb = new StringBuilder(s);
-        int i=0, j=s.length()-1;
-        while(i<j){
-            char temp = sb.charAt(i);
-            sb.setCharAt(i, sb.charAt(j));
-            sb.setCharAt(j, temp);
-            i++;
-            j--;
-        }
-        return ""+sb;
+        sb.append(str[0]);
+        return sb.toString();
     }
 }
 ```
@@ -2495,61 +2449,14 @@ class Solution{
 ### 树的子结构
 
 ```java
-/**
- * Definition for a binary tree node.
- * public class TreeNode {
- *     int val;
- *     TreeNode left;
- *     TreeNode right;
- *     TreeNode(int x) { val = x; }
- * }
- */
 class Solution {
-    private TreeNode global_B;
-    private int target;
-
     public boolean isSubStructure(TreeNode A, TreeNode B) {
-        if (A == null || B == null) return false;
-        //target设为B节点的的val
-        target = B.val;
-        global_B = B;
-        return helper(A);
+        return (A != null && B != null) && (recur(A, B) || isSubStructure(A.left, B) || isSubStructure(A.right, B));
     }
-
-    //寻找值为target的节点, 若找到，调用isSub()
-    private boolean helper(TreeNode root) {
-        if (root != null) {
-            if (root.val == target)
-                if (isSub(root, global_B))
-                    return true;
-
-            return helper(root.left) || helper(root.right);
-        }
-        return false;
-    }
-
-    //判断以b为根节点的树 是否是 以a为根节点的树 的子树
-    //满足子树的条件为：
-    //1. 若a和b都不为空，则a和b的val必须相等；
-    //2. 若a为空，b也 必须 为空；
-    //3. 若a不为空，b 可以 为空，也可以不为空(当b不为空时，即等价于条件1.)
-    private boolean isSub(TreeNode a, TreeNode b) {
-        //若当前的a 和 b都不为null
-        if (b != null && a != null) {
-            //比较a和b的val，若不相等，直接返回false
-            if (b.val != a.val)
-                return false;
-            //递归判断 以b.left为根节点的树 是否是 以a.left为根节点的树 的子树
-            //递归判断 以b.right为根节点的树 是否是 以a.right为根节点的树 的子树
-            return isSub(a.left, b.left) && isSub(a.right, b.right);
-        }
-        /*等价于
-        //若b不为空，而a为空，则说明不满足 子树 条件
-        if(b != null && a == null)
-            return false;
-        return true;
-         */
-        return b == null || a != null;
+    boolean recur(TreeNode A, TreeNode B) {
+        if(B == null) return true;
+        if(A == null || A.val != B.val) return false;
+        return recur(A.left, B.left) && recur(A.right, B.right);
     }
 }
 ```
